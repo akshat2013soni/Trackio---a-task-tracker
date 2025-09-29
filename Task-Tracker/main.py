@@ -16,8 +16,20 @@ def check_file(file_path):
 def add_task():
     pass
     
-def display_tasks_list():
-    pass
+def display_tasks_list(status):
+    with open(file_path, 'r') as tasks_file:
+        tasks = json.load(tasks_file)
+    if status == "all":
+        print(json.dumps(tasks, indent=4))
+    elif status == "todo":
+        print(json.dumps([task for task in tasks if task.get('status')=='todo'],indent=4))
+    elif status == "done":
+        print(json.dumps([task for task in tasks if task.get('status')=='done'],indent=4))
+    elif status == "in-progress":
+        print(json.dumps([task for task in tasks if task.get('status')=='in-progress'],indent=4))
+    else:
+        print("No data with such status exists")
+        exit()
 
 def update_task():
     pass
@@ -37,6 +49,7 @@ def main():
     )
     parser.add_argument('-a','--add',help='Add a task', required=False)
     parser.add_argument('-ls','--list',help='-l [todo|all|done|in-progress] for sowing tasks', required=False)
+    parser.add_argument('-p', '--pick', help='Pick which id you want to look', required=False)
     parser.add_argument('-u', '--update', help='Type new description or something you want', required=False)
     parser.add_argument('-m', '--mark', help='Type "in-progress" or "done"', required=False)
     parser.add_argument('-d', '--delete', help='Delete', required=False)
