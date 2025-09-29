@@ -4,17 +4,33 @@ import os
 from datetime import datetime
 
 file_path = "tasks_list.json"
-   
+time = datetime.now()
+formatted_time = time.strftime('%H:%M %d %B %Y')
+
 def check_file(file_path):
     """To check file exits or not and creates if doe not"""
     try:
         with open(file_path, 'x'):
-            pass
+            return True
     except FileExistsError:
-        pass
+        return False
 
-def add_task():
-    pass
+def add_task(task):
+    with open(file_path, 'r') as file:
+        data = json.load(file)
+        # Getting last id from json file
+        last_id = max(item['id'] for item in data) if data else 0
+        new_task = {
+            'id': last_id + 1,
+            'description': task,
+            'status': 'todo',
+            'createdAt': formatted_time,
+            'updatedAt': formatted_time
+        }
+        data.append(new_task)
+
+    with open(file_path, 'w') as file:
+        json.dump(data, file, indent=4)
     
 def display_tasks_list(status):
     with open(file_path, 'r') as tasks_file:
@@ -55,9 +71,9 @@ def main():
     parser.add_argument('-d', '--delete', help='Delete', required=False)
     
     args = parser.parse_args()
-    check_file(file_path)
+    
     if args.add:
-        add_task()
+        add_task(args.add)
 
     elif args.list:
         display_tasks_list(str(args.list))
