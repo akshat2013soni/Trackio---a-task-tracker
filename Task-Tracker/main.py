@@ -54,8 +54,16 @@ def update_task(task_id, new_description):
             return
     print(f"The task #{task_id} not found.")
 
-def mark_task():
-    pass
+def mark_task(task_id, new_task_status):
+    tasks = load_tasks()
+    for task in tasks:
+        if task['id'] == task_id:
+            task['status'] = new_task_status
+            task['updatedAt'] = formatted_time
+            save_tasks(tasks)
+            print(f"The task #{task_id}'s status updated successfully.")
+            return
+    print(f"The task #{task_id} not found.")
 
 def delete_task():
     pass
