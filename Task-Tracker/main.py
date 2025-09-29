@@ -65,8 +65,15 @@ def mark_task(task_id, new_task_status):
             return
     print(f"The task #{task_id} not found.")
 
-def delete_task():
-    pass
+def delete_task(task_id):
+    tasks = load_tasks()
+    for task in tasks:
+        if task['id'] == task_id:
+            tasks.remove(task)
+            save_tasks(tasks)
+            print(f"The task #{task_id} removed successfully.")
+            return
+    print(f"The task #{task_id} does not exist.")
     
 def main():
     parser = argparse.ArgumentParser(description="Task Tracker CLI")
