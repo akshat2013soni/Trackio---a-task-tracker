@@ -40,8 +40,17 @@ def add_task(description):
     save_tasks(tasks)
     print(f"Task added successfully (ID: {task_id})")
     
-def display_tasks_list():
-    pass
+def display_tasks_list(status=None):
+    tasks = load_tasks()
+    if status:
+        tasks = [task for task in tasks if task['status'] == status]
+    if not tasks:
+        print("No tasks found for such status.")
+        return
+    for task in tasks:
+        for key, value in task.items():
+            print(f"{key}: {value}",end="\n")
+        print("\n")
             
 def update_task(task_id, new_description):
     tasks = load_tasks()
