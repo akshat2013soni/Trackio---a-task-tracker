@@ -43,8 +43,16 @@ def add_task(description):
 def display_tasks_list():
     pass
             
-def update_task():
-    pass
+def update_task(task_id, new_description):
+    tasks = load_tasks()
+    for task in tasks:
+        if task['id'] == task_id:
+            task['description'] = new_description
+            task['updatedAt'] = formatted_time
+            save_tasks(tasks)
+            print(f"The task #{task_id} updated successfully.")
+            return
+    print(f"The task #{task_id} not found.")
 
 def mark_task():
     pass
