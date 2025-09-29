@@ -4,49 +4,45 @@ import os
 from datetime import datetime
 
 file_path = "tasks_list.json"
-time = datetime.now()
-formatted_time = time.strftime('%H:%M %d %B %Y')
+current_time = datetime.now()
+formatted_time = current_time.strftime('%H:%M %d %B %Y')
 
-def check_file(file_path):
-    """To check file exits or not and creates if doe not"""
-    try:
-        with open(file_path, 'x'):
-            return True
-    except FileExistsError:
-        return False
-
-def add_task(task):
-    with open(file_path, 'r') as file:
-        data = json.load(file)
-        # Getting last id from json file
-        last_id = max(item['id'] for item in data) if data else 0
-        new_task = {
-            'id': last_id + 1,
-            'description': task,
-            'status': 'todo',
-            'createdAt': formatted_time,
-            'updatedAt': formatted_time
-        }
-        data.append(new_task)
-
-    with open(file_path, 'w') as file:
-        json.dump(data, file, indent=4)
+def load_tasks():
+    if not os.path.exists(file_path):
+        with open(file_path, 'w') as file:
+            json.dump([],file)
+        return []
     
-def display_tasks_list(status):
-    with open(file_path, 'r') as tasks_file:
-        tasks = json.load(tasks_file)
-    if status == "all":
-        print(json.dumps(tasks, indent=4))
-    elif status == "todo":
-        print(json.dumps([task for task in tasks if task.get('status')=='todo'],indent=4))
-    elif status == "done":
-        print(json.dumps([task for task in tasks if task.get('status')=='done'],indent=4))
-    elif status == "in-progress":
-        print(json.dumps([task for task in tasks if task.get('status')=='in-progress'],indent=4))
-    else:
-        print("No data with such status exists")
-        exit()
+    with open(file_path, 'r') as file:
+        try:
+            return json.load(file)
+        except json.JSONDecodeError:
+            return []
 
+def save_tasks(tasks):
+    with open(file_path, 'w') as file:
+        json.dump(tasks, file, indent=4)
+
+def get_next_id(tasks):
+    return max([task['id'] for task in tasks], default=0) + 1
+
+def add_task(description):
+    tasks = load_tasks()
+    task_id = get_next_id(tasks)
+    new_task = {
+        'id': task_id,
+        'description': description,
+        'status': 'Pending',
+        'createdAt': formatted_time,
+        'updatedAt': formatted_time
+    }
+    tasks.append(new_task)
+    save_tasks(tasks)
+    print(f"Task added successfully (ID: {task_id})")
+    
+def display_tasks_list():
+    pass
+            
 def update_task():
     pass
 
@@ -57,40 +53,47 @@ def delete_task():
     pass
     
 def main():
-    #make a parser
-    parser = argparse.ArgumentParser(
-        prog="Trackio - Your task tracking helper",
-        description="App used to track and manage your tasks",
-        epilog=""
-    )
-    parser.add_argument('-a','--add',help='Add a task', required=False)
-    parser.add_argument('-ls','--list',help='-l [todo|all|done|in-progress] for sowing tasks', required=False)
-    parser.add_argument('-p', '--pick', help='Pick which id you want to look', required=False)
-    parser.add_argument('-u', '--update', help='Type new description or something you want', required=False)
-    parser.add_argument('-m', '--mark', help='Type "in-progress" or "done"', required=False)
-    parser.add_argument('-d', '--delete', help='Delete', required=False)
-    
+    parser = argparse.ArgumentParser(description="Task Tracker CLI")
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+
+    # Add command
+    parser_add = subparsers.add_parser("add", help="Add a new task")
+    parser_add.add_argument("description", type=str, help="Description of the task")
+
+    # List command
+    parser_list = subparsers.add_parser("list", help="List all tasks")
+    parser_list.add_argument("status", type=str, nargs='?', default=None, help="Status of the tasks to list (optional)")
+
+    # Update command
+    parser_update = subparsers.add_parser("update", help="Update an existing task")
+    parser_update.add_argument("id", type=int, help="ID of the task to update")
+    parser_update.add_argument("description", type=str, help="New description of the task")
+
+    # Mark command
+    parser_mark = subparsers.add_parser("mark", help="Mark a task as completed or pending")
+    parser_mark.add_argument("id", type=int, help="ID of the task to mark")
+    parser_mark.add_argument("status", type=str, choices=["completed", "pending"], help="New status of the task")
+
+    # Delete command
+    parser_delete = subparsers.add_parser("delete", help="Delete a task")
+    parser_delete.add_argument("id", type=int, help="ID of the task to delete")
+
     args = parser.parse_args()
-    
-    if args.add:
-        add_task(args.add)
 
-    elif args.list:
-        display_tasks_list(str(args.list))
+    print("Trackio - Your task tracking helper")
 
-    elif args.pick:
-        if args.update:
-            update_task()
-        elif args.mark:
-            mark_task()
-        elif args.delete:
-            delete_task()
-        else:
-            parser.error('For pick, you must specify either --update or --mark')
-
+    if args.command == "add":
+        add_task(args.description)
+    elif args.command == "list":
+        display_tasks_list(args.status)
+    elif args.command == "update":
+        update_task(args.id, args.description)
+    elif args.command == "mark":
+        mark_task(args.id, args.status.capitalize())
+    elif args.command == "delete":
+        delete_task(args.id)
     else:
-        exit()
-        
-            
-if __name__ == '__main__':
+        parser.print_help()
+
+if __name__ == "__main__":
     main()
